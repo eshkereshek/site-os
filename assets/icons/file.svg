@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Site OS file icon. Original vector drawing. NOT CHECKED IN VM. -->
+  <path d="M10 4 h20 l8 8 v32 H10 z" fill="#E6EEF8" stroke="#A9B6C4" stroke-width="1"/>
+  <path d="M30 4 v8 h8" fill="#C5CFDC" stroke="#A9B6C4" stroke-width="1"/>
+  <line x1="15" y1="22" x2="33" y2="22" stroke="#8FA3B5" stroke-width="1.5"/>
+  <line x1="15" y1="28" x2="33" y2="28" stroke="#8FA3B5" stroke-width="1.5"/>
+  <line x1="15" y1="34" x2="28" y2="34" stroke="#8FA3B5" stroke-width="1.5"/>
+</svg>

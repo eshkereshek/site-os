@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Site OS folder icon. Original vector drawing. NOT CHECKED IN VM. -->
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F5E08A"/>
+      <stop offset="1" stop-color="#E0B040"/>
+    </linearGradient>
+  </defs>
+  <path d="M4 12 h14 l4 4 h22 v22 H4 z" fill="#C88A30"/>
+  <rect x="4" y="18" width="40" height="22" fill="url(#body)"/>
+</svg>

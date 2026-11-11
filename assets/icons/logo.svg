@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- Site OS logo: circle with a spiral-like "S" mark. Original vector. NOT CHECKED IN VM. -->
+  <circle cx="24" cy="24" r="21" fill="#4B5562" stroke="#C9D1DC" stroke-width="2"/>
+  <path d="M31 17 C29 13 19 12 18 18 C17 23 30 22 30 29 C30 36 18 36 16 31"
+        fill="none" stroke="#E8EAF0" stroke-width="3" stroke-linecap="round"/>
+</svg>
