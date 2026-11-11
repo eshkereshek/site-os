@@ -1,0 +1,22 @@
+/* XPM */
+static char * minimize_xpm[] = {
+"14 14 4 1",
+". c None",
+"f c #8E9AA6",
+"r c #A9B6C4",
+"m c #1E2228",
+"..............",
+"....rrrrrr....",
+"..rrffffffrr..",
+"..rffffffffr..",
+".rffffffffffr.",
+".rffffffffffr.",
+".rffmmmmmmffr.",
+".rffmmmmmmffr.",
+".rffffffffffr.",
+".rffffffffffr.",
+"..rffffffffr..",
+"..rrffffffrr..",
+"....rrrrrr....",
+".............."
+};

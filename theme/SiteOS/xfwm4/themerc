@@ -1,0 +1,21 @@
+[Settings]
+# Site OS xfwm4 theme. NOT CHECKED IN VM.
+# Frame is OPAQUE by design (fallback). Transparency is set via
+# compositor opacity in xfconf (see install.sh --step xfwm4-theme).
+# Two round buttons on the right (minimize, close); maximize/shade omitted.
+title_font = Terminus Bold 10
+button_layout = O|HMC
+title_alignment = left
+title_shadow_active = false
+title_shadow_inactive = false
+frame_border_top = 22
+frame_border_bottom = 1
+frame_border_left = 1
+frame_border_right = 1
+title_height = 22
+
+# Opaque colours (no alpha)
+active_text_color = #E8EAF0
+inactive_text_color = #D5D9E3
+active_color_2 = #4B5562
+inactive_color_2 = #3A4550

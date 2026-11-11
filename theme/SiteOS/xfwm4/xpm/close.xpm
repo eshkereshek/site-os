@@ -1,0 +1,22 @@
+/* XPM */
+static char * close_xpm[] = {
+"14 14 4 1",
+". c None",
+"f c #B5656B",
+"r c #A9B6C4",
+"m c #1E2228",
+"..............",
+"....rrrrrr....",
+"..rrffffffrr..",
+"..rmmffffmmr..",
+".rfmmmffmmmfr.",
+".rffmmmmmmffr.",
+".rfffmmmmfffr.",
+".rfffmmmmfffr.",
+".rffmmmmmmffr.",
+".rfmmmffmmmfr.",
+"..rmmffffmmr..",
+"..rrffffffrr..",
+"....rrrrrr....",
+".............."
+};
