@@ -1,0 +1,122 @@
+/* Site OS GTK 3 theme. NOT CHECKED IN VM.
+   Opaque colours are pre-computed (no alpha) for list rows and window body.
+   Transparency is only on the window frame and panel (compositor-dependent). */
+
+@define-color so_bg #3A4550;
+@define-color so_frame #4B5562;
+@define-color so_body #727993;
+@define-color so_row_even #6F768D;
+@define-color so_row_odd #626A82;
+@define-color so_select #5E6688;
+@define-color so_text #E8EAF0;
+@define-color so_text_dim #D5D9E3;
+@define-color so_btn #8E9AA6;
+@define-color so_edge #A9B6C4;
+
+* {
+  font-family: "Terminus", "VT323", "DejaVu Sans Mono", monospace;
+  font-size: 13px;
+  color: @so_text;
+}
+
+window, .background {
+  background-color: @so_bg;
+  color: @so_text;
+}
+
+headerbar, .titlebar {
+  background-color: @so_frame;
+  border-bottom: 1px solid @so_edge;
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: 0;
+}
+
+headerbar .title {
+  font-weight: normal;
+  color: @so_text;
+}
+
+button {
+  background-image: none;
+  background-color: @so_btn;
+  border: 1px solid @so_edge;
+  border-radius: 0;
+  color: @so_text;
+  box-shadow: none;
+  padding: 2px 8px;
+}
+
+button:hover {
+  background-color: @so_select;
+}
+
+button:active, button:checked {
+  background-color: @so_select;
+  border-color: @so_text_dim;
+}
+
+/* Thunar / GtkTreeView list */
+treeview.view {
+  background-color: @so_body;
+  color: @so_text;
+  border-radius: 0;
+}
+
+treeview.view:nth-child(even) {
+  background-color: @so_row_even;
+}
+
+treeview.view:nth-child(odd) {
+  background-color: @so_row_odd;
+}
+
+treeview.view:selected,
+treeview.view:selected:focus {
+  background-color: @so_select;
+  color: @so_text;
+}
+
+treeview.view header button {
+  background-color: @so_frame;
+  color: @so_text_dim;
+  border: none;
+  border-bottom: 1px solid @so_edge;
+  padding: 2px 6px;
+}
+
+scrollbar slider {
+  background-color: @so_btn;
+  border-radius: 0;
+  min-width: 6px;
+  min-height: 6px;
+}
+
+scrollbar trough {
+  background-color: @so_frame;
+}
+
+menu, .menu, popover {
+  background-color: #C5CAD6;
+  color: #1E2228;
+  border: 1px solid @so_edge;
+  border-radius: 0;
+}
+
+menu menuitem:hover {
+  background-color: @so_select;
+  color: @so_text;
+}
+
+entry, text {
+  background-color: @so_row_odd;
+  color: @so_text;
+  border: 1px solid @so_edge;
+  border-radius: 0;
+}
+
+tooltip {
+  background-color: @so_frame;
+  color: @so_text;
+  border-radius: 0;
+}
