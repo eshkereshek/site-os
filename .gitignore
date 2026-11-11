@@ -1,0 +1,22 @@
+# ISO and VM disks
+*.iso
+*.vdi
+*.vmdk
+*.qcow2
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Build output
+build/
+out/
+
+# Screenshots from the game/reference, not published
+assets/reference/
+
+# Local secrets (never commit)
+.env
+*.token
+*.key
