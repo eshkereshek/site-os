@@ -112,6 +112,15 @@ sync_channel() {
     install -m 0644 "$src" /etc/xdg/xfce4/panel/default.xml
   fi
 
+  # Distribution-specific XDG overrides (Linux Mint / Xubuntu)
+  local extra_xdg
+  for extra_xdg in /etc/xdg/xdg-mint /etc/xdg/xdg-xubuntu; do
+    if [[ -d "$extra_xdg" ]]; then
+      mkdir -p "${extra_xdg}/xfce4/xfconf/xfce-perchannel-xml"
+      install -m 0644 "$src" "${extra_xdg}/xfce4/xfconf/xfce-perchannel-xml/${channel}.xml"
+    fi
+  done
+
   # Existing user homes in /home/*
   local h
   for h in /home/*; do
@@ -280,8 +289,8 @@ step_xfwm4_theme() {
     <property name="title_horizontal_offset" type="int" value="7"/>
     <property name="button_offset" type="int" value="7"/>
     <property name="button_spacing" type="int" value="7"/>
-    <property name="frame_opacity" type="int" value="94"/>
-    <property name="inactive_opacity" type="int" value="94"/>
+    <property name="frame_opacity" type="int" value="100"/>
+    <property name="inactive_opacity" type="int" value="100"/>
     <property name="show_app_icon" type="bool" value="false"/>
   </property>
 </channel>
@@ -365,10 +374,19 @@ EOF
 EOF
   sync_channel "xfce4-panel"
 
-  # Executable wrapper for Start button
+  # Executable wrapper for Start button (direct jgmenu with clean fallbacks)
   write_file /usr/bin/siteos-menu <<'EOF'
 #!/bin/sh
-exec jgmenu_run || jgmenu --csv-file=/etc/skel/.config/jgmenu/prepend.csv || xfce4-popup-applicationsmenu
+if command -v jgmenu >/dev/null 2>&1; then
+  if [ -f "$HOME/.config/jgmenu/jgmenurc" ]; then
+    exec jgmenu --config-file="$HOME/.config/jgmenu/jgmenurc" --csv-file="$HOME/.config/jgmenu/prepend.csv"
+  elif [ -f "/etc/jgmenu/jgmenurc" ]; then
+    exec jgmenu --config-file="/etc/jgmenu/jgmenurc" --csv-file="/etc/jgmenu/prepend.csv"
+  else
+    exec jgmenu
+  fi
+fi
+exec xfce4-popup-applicationsmenu || xfce4-appfinder
 EOF
   chmod 0755 /usr/bin/siteos-menu
 
@@ -398,9 +416,21 @@ EOF
   install -m 0644 "${REPO}/configs/jgmenu/jgmenurc" /etc/jgmenu/jgmenurc 2>/dev/null || true
   install -m 0644 "${REPO}/configs/jgmenu/prepend.csv" /etc/jgmenu/prepend.csv 2>/dev/null || true
 
-  # Genmon status line: "LAN: CONNECTED · SITE OS 0.1 · HH:MM:SS".
+  # Genmon status line: "LAN: CONNECTED · SITE OS 0.1 · HH:MM:SS"
   install -d -m 0755 /usr/local/share/siteos
   install -m 0755 "${REPO}/configs/genmon/siteos-status.sh" /usr/local/share/siteos/siteos-status.sh
+  ln -sf /usr/local/share/siteos/siteos-status.sh /usr/bin/siteos-status
+
+  # genmon-4.rc for xfce4-genmon-plugin versions using .rc configuration
+  mkdir -p "${SKEL}/.config/xfce4/panel" /etc/xdg/xfce4/panel
+  write_file "${SKEL}/.config/xfce4/panel/genmon-4.rc" <<'EOF'
+Command=/usr/local/share/siteos/siteos-status.sh
+UseLabel=0
+Text=(genmon)
+UpdatePeriod=1000
+Font=VT323 15
+EOF
+  install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-4.rc" /etc/xdg/xfce4/panel/genmon-4.rc
 
   # Terminal palette (mockup Terminal window).
   install -d -m 0755 "${SKEL}/.config/xfce4/terminal" /etc/xdg/xfce4/terminal
@@ -425,6 +455,7 @@ EOF
       install -m 0644 "${REPO}/configs/xfce4-terminal/terminalrc" "${h}/.config/xfce4/terminal/terminalrc"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.local/share/applications/siteos-start.desktop"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.config/xfce4/panel/launcher-1/siteos-start.desktop"
+      install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-4.rc" "${h}/.config/xfce4/panel/genmon-4.rc"
       install -m 0644 "${SKEL}/.config/autostart/mintwelcome.desktop" "${h}/.config/autostart/mintwelcome.desktop"
       local owner
       owner="$(stat -c '%u:%g' "$h")"
@@ -437,24 +468,35 @@ EOF
 step_desktop() {
   log "step: desktop (Thunar list view, desktop icons from mockup.html) not checked in VM"
 
-  # Thunar configuration matching mockup: clean list view, no sidepane, no location bar, no menubar
+  # Thunar configuration: Windows Explorer layout with left navigation sidebar, address bar, menubar, and statusbar
   write_file "${SKEL_XFCE}/thunar.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="thunar" version="1.0">
   <property name="last-view" type="string" value="ThunarDetailsView"/>
-  <property name="last-side-pane" type="string" value="void"/>
-  <property name="last-location-bar" type="string" value="void"/>
-  <property name="last-menubar-visible" type="bool" value="false"/>
-  <property name="last-statusbar-visible" type="bool" value="false"/>
+  <property name="last-side-pane" type="string" value="ThunarShortcutsPane"/>
+  <property name="last-location-bar" type="string" value="ThunarLocationButtons"/>
+  <property name="last-menubar-visible" type="bool" value="true"/>
+  <property name="last-statusbar-visible" type="bool" value="true"/>
   <property name="last-show-hidden" type="bool" value="false"/>
-  <property name="misc-single-click" type="bool" value="true"/>
+  <property name="misc-single-click" type="bool" value="false"/>
+  <property name="last-separator-position" type="int" value="180"/>
   <property name="last-details-view-zoom-level" type="string" value="THUNAR_ZOOM_LEVEL_100_PERCENT"/>
-  <property name="last-details-view-column-order" type="string" value="THUNAR_COLUMN_NAME,THUNAR_COLUMN_MIME_TYPE,THUNAR_COLUMN_SIZE"/>
-  <property name="last-details-view-visible-columns" type="string" value="THUNAR_COLUMN_NAME,THUNAR_COLUMN_MIME_TYPE,THUNAR_COLUMN_SIZE"/>
-  <property name="last-details-view-column-widths" type="string" value="280,130,80"/>
+  <property name="last-details-view-column-order" type="string" value="THUNAR_COLUMN_NAME,THUNAR_COLUMN_DATE_MODIFIED,THUNAR_COLUMN_MIME_TYPE,THUNAR_COLUMN_SIZE"/>
+  <property name="last-details-view-visible-columns" type="string" value="THUNAR_COLUMN_NAME,THUNAR_COLUMN_DATE_MODIFIED,THUNAR_COLUMN_MIME_TYPE,THUNAR_COLUMN_SIZE"/>
+  <property name="last-details-view-column-widths" type="string" value="260,140,120,90"/>
 </channel>
 EOF
   sync_channel "thunar"
+
+  # Quick Access bookmarks for Thunar left sidebar
+  mkdir -p "${SKEL}/.config/gtk-3.0"
+  write_file "${SKEL}/.config/gtk-3.0/bookmarks" <<'EOF'
+file:///home/mint/Desktop Desktop
+file:///home/mint/Desktop/Site Site
+file:///home/mint/Desktop/Sessions Sessions
+file:///home/mint/Desktop/Personal Personal
+file:///home/mint/Desktop/Intake Intake
+EOF
 
   # Populate desktop with the exact items from mockup.html
   local d
@@ -497,6 +539,20 @@ EOF
       local owner
       owner="$(stat -c '%u:%g' "$parent_dir")"
       chown -R "$owner" "$d" 2>/dev/null || true
+    fi
+  done
+
+  # Sync bookmarks to existing users
+  local user_h
+  for user_h in /home/*; do
+    if [[ -d "$user_h" && "$user_h" != "/home/*" ]]; then
+      local user_name
+      user_name="$(basename "$user_h")"
+      mkdir -p "${user_h}/.config/gtk-3.0"
+      sed "s|/home/mint|/home/${user_name}|g" "${SKEL}/.config/gtk-3.0/bookmarks" > "${user_h}/.config/gtk-3.0/bookmarks"
+      local owner
+      owner="$(stat -c '%u:%g' "$user_h")"
+      chown -R "$owner" "${user_h}/.config/gtk-3.0" 2>/dev/null || true
     fi
   done
 

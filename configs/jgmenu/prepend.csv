@@ -6,10 +6,10 @@ Settings,xfce4-settings-manager,preferences-system
 About Site OS,sh -c "zenity --info --title='About Site OS' --text='Site OS 0.1\nLinux Mint XFCE base\nTheme: Site OS' 2>/dev/null || true",help-about
 
 ^tag(favorites)
-Site,thunar /home/mint/Desktop/Site,folder
-Sessions,thunar /home/mint/Desktop/Sessions,folder
-Personal,thunar /home/mint/Desktop/Personal,folder
-Intake,thunar /home/mint/Desktop/Intake,folder
+Site,sh -c "thunar ~/Desktop/Site",folder
+Sessions,sh -c "thunar ~/Desktop/Sessions",folder
+Personal,sh -c "thunar ~/Desktop/Personal",folder
+Intake,sh -c "thunar ~/Desktop/Intake",folder
 
 Programs,^checkout(programs),system-run
 Favorites,^checkout(favorites),user-bookmarks
