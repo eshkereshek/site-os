@@ -132,7 +132,7 @@ button {{
   background-image: none;
   background-color: @so_btn;
   border: {s['frameBorderPx']}px solid @so_edge;
-  border-radius: 50%;
+  border-radius: 0;
   color: @so_text;
   box-shadow: none;
   padding: 2px 8px;

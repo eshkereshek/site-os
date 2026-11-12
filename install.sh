@@ -19,7 +19,8 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 THEME_NAME="SiteOS"
 THEME_SRC="${REPO}/theme/${THEME_NAME}"
 WALL_SRC="${REPO}/scripts/gen_wallpaper.py"
-ICON_SRC="${REPO}/assets/icons/logo.svg"
+ICON_SRC="${REPO}/assets/icons/logo.png"
+BOOT_LOGO_SRC="${REPO}/assets/icons/start_logo.png"
 WALL_DIR="/usr/share/backgrounds/siteos"
 WALL_FILE="${WALL_DIR}/site-os-topo.png"
 SKEL="/etc/skel"
@@ -253,16 +254,51 @@ EOF
         <value type="int" value="2"/>
         <value type="int" value="3"/>
         <value type="int" value="4"/>
+        <value type="int" value="5"/>
+        <value type="int" value="6"/>
+        <value type="int" value="7"/>
       </property>
     </property>
   </property>
   <property name="plugins" type="empty">
-    <property name="plugin-1" type="string" value="launcher"/>
-    <property name="plugin-2" type="string" value="tasklist"/>
-    <property name="plugin-3" type="string" value="genmon"/>
-    <property name="plugin-4" type="string" value="systray"/>
+    <property name="plugin-1" type="string" value="launcher">
+      <property name="items" type="array">
+        <value type="string" value="siteos-start.desktop"/>
+      </property>
+    </property>
+    <property name="plugin-2" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-3" type="string" value="tasklist">
+      <property name="grouping" type="uint" value="1"/>
+      <property name="show-labels" type="bool" value="true"/>
+    </property>
+    <property name="plugin-4" type="string" value="separator">
+      <property name="expand" type="bool" value="true"/>
+      <property name="style" type="uint" value="0"/>
+    </property>
+    <property name="plugin-5" type="string" value="genmon">
+      <property name="command" type="string" value="/usr/local/share/siteos/siteos-status.sh"/>
+      <property name="update-period" type="uint" value="1"/>
+    </property>
+    <property name="plugin-6" type="string" value="systray"/>
+    <property name="plugin-7" type="string" value="clock">
+      <property name="digital-format" type="string" value="%H:%M:%S"/>
+    </property>
   </property>
 </channel>
+EOF
+
+  # Start button: a .desktop entry that runs jgmenu (the launcher plugin reads it).
+  write_file "${SKEL}/.local/share/applications/siteos-start.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Start
+Exec=jgmenu_run
+Icon=/usr/share/pixmaps/siteos-logo.png
+Categories=Utility;
+NoDisplay=true
 EOF
 
   # Logo launcher: opens jgmenu. Logo path is the repo SVG, copied to /usr/share/pixmaps.
@@ -335,7 +371,10 @@ EOF
   done < <(find /usr/share /etc -type f -iname '*mint*logo*' -print0 2>/dev/null)
 
   check_path "${ICON_SRC}"
-  install -m 0644 "${ICON_SRC}" /usr/share/pixmaps/siteos-logo.svg
+  install -m 0644 "${ICON_SRC}" /usr/share/pixmaps/siteos-logo.png
+  # Boot/splash logo (start_logo.png). Plymouth theme wiring is NOT CHECKED IN VM.
+  install -d -m 0755 /usr/share/siteos
+  install -m 0644 "${BOOT_LOGO_SRC}" /usr/share/siteos/start_logo.png
 
   # Live-session welcome text, shipped in skel for new users.
   write_file "${SKEL}/Welcome-SiteOS.txt" <<'EOF'

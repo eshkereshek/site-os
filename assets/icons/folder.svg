@@ -1,11 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-  <!-- Site OS folder icon. Original vector drawing. NOT CHECKED IN VM. -->
-  <defs>
-    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#F5E08A"/>
-      <stop offset="1" stop-color="#E0B040"/>
-    </linearGradient>
-  </defs>
-  <path d="M4 12 h14 l4 4 h22 v22 H4 z" fill="#C88A30"/>
-  <rect x="4" y="18" width="40" height="22" fill="url(#body)"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Site OS folder: mockup symbol "folder" (viewBox 0 0 64 64). NOT CHECKED IN VM. -->
+  <path d="M6 14h20l5 6h27v34H6z" fill="#C88A30"/>
+  <rect x="6" y="24" width="52" height="30" rx="2" fill="#F5E08A"/>
+  <rect x="6" y="40" width="52" height="14" fill="#E0B040" opacity=".55"/>
 </svg>
