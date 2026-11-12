@@ -184,15 +184,13 @@ update_md5() {
 # BIOS (isolinux/El Torito) + UEFI (EFI image) boot, taken from the original ISO.
 build_iso() {
   log "building ISO ${OUT_ISO}"
-  local mbr="${WORK}/isohdpfx.bin"
-  if [[ -f "${ISO_ROOT}/isolinux/isohdpfx.bin" ]]; then
-    cp "${ISO_ROOT}/isolinux/isohdpfx.bin" "${mbr}"
-  else
-    xorriso -osirrox on -indev "${SRC_ISO}" -extract_boot_images "${WORK}/boot" >/dev/null 2>&1 || true
-    cp "${WORK}/boot/isohdpfx.bin" "${mbr}" 2>/dev/null \
-      || die "isohdpfx.bin not found; cannot build hybrid BIOS boot"
-  fi
-
+  # Hybrid MBR = first 432 bytes of the original ISO (as in Debian RepackBootableISO).
+  # Do not depend on isolinux/isohdpfx.bin or xorriso -extract_boot_images: not always present.
+  # -isohybrid-mbr is the xorrisofs option for the MBR; NOT CHECKED IN CI YET.
+  local mbr="${WORK}/isohybrid-mbr.bin"
+  dd if="${SRC_ISO}" of="${mbr}" bs=432 count=1 status=none \
+    || die "could not read MBR from ${SRC_ISO}"
+  [[ "$(stat -c %s "${mbr}")" -eq 432 ]] || die "MBR extract is not 432 bytes"
   local efi_img="boot/grub/efi.img"
   [[ -f "${ISO_ROOT}/${efi_img}" ]] || efi_img="$(cd "${ISO_ROOT}" && find . -iname 'efi.img' -print -quit | sed 's|^\./||')"
   [[ -n "${efi_img}" && -f "${ISO_ROOT}/${efi_img}" ]] \
@@ -203,7 +201,7 @@ build_iso() {
     -r -V "${VOLID}" -J -joliet-long -l \
     -iso-level 3 \
     -partition_offset 16 \
-    --grub2-mbr "${mbr}" \
+    -isohybrid-mbr "${mbr}" \
     -append_partition 2 0xef "${ISO_ROOT}/${efi_img}" \
     -appended_part_as_gpt \
     -c boot.catalog \
