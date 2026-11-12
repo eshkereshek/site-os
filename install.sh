@@ -27,7 +27,6 @@ SKEL_XFCE="${SKEL}/.config/xfce4/xfconf/xfce-perchannel-xml"
 THEME_DST="/usr/share/themes/${THEME_NAME}"
 FONT_FAMILY="VT323"
 VT323_FAMILY="VT323"
-UNSCII_FAMILY="Unscii"
 FONT_SRC_TTF="${REPO}/assets/fonts/VT323-Regular.ttf"
 FONT_SRC_LICENSE="${REPO}/assets/fonts/OFL-VT323.txt"
 FONT_DST="/usr/share/fonts/truetype/siteos"
@@ -44,7 +43,7 @@ Usage:
   sudo ./install.sh --step <name>
 
 Steps:
-  fonts         VT323 (repo TTF) primary, fonts-unscii fallback; warnings only
+  fonts         VT323 (repo TTF) primary, DejaVu Sans Mono fallback; warnings only
   wallpaper     topographic wallpaper + skel xfce4-desktop.xml
   gtk-theme     GTK 3 CSS theme + skel settings.ini
   xfwm4-theme   xfwm4 theme, buttons, skel xfwm4.xml
@@ -92,13 +91,14 @@ write_file() {
   mv -f "${path}.tmp" "$path"
 }
 
-# Primary font: VT323 (OFL) shipped in assets/fonts. Fallback: Unscii (fonts-unscii).
+# Primary font: VT323 (OFL) shipped in assets/fonts. Fallback: DejaVu Sans Mono.
+# fonts-unscii is NOT in Ubuntu noble (no package named unscii), so it cannot be used.
 # Terminus is NOT used (bitmap; Pango does not render it). Warnings only, no exit.
 # NOT CHECKED IN VM.
 step_fonts() {
-  log "step: fonts (primary ${VT323_FAMILY} from repo, fallback ${UNSCII_FAMILY})"
+  log "step: fonts (primary ${VT323_FAMILY} from repo, fallback DejaVu Sans Mono)"
   check_path "${FONT_SRC_TTF}"
-  apt_install fontconfig fonts-unscii fonts-dejavu-core
+  apt_install fontconfig fonts-dejavu-core
 
   install -d -m 0755 "${FONT_DST}"
   install -m 0644 "${FONT_SRC_TTF}" "${FONT_DST}/VT323-Regular.ttf"
@@ -109,15 +109,15 @@ step_fonts() {
   if fc-list | grep -qi "vt323"; then
     log "fc-list: VT323 found"
   else
-    log "WARNING: fc-list | grep -i vt323 found nothing; theme falls back to ${UNSCII_FAMILY} (not checked in VM)"
+    log "WARNING: fc-list | grep -i vt323 found nothing; theme falls back to DejaVu Sans Mono (not checked in VM)"
   fi
 
   local ru
   ru="$(fc-list :lang=ru family 2>/dev/null || true)"
-  if grep -qi "${UNSCII_FAMILY}" <<<"${ru}"; then
-    log "${UNSCII_FAMILY} has ru coverage"
+  if grep -qi "VT323" <<<"${ru}"; then
+    log "VT323 has ru coverage"
   else
-    log "WARNING: no ru coverage in ${UNSCII_FAMILY}; DejaVu Sans Mono is the cyrillic fallback"
+    log "WARNING: VT323 has no ru coverage; DejaVu Sans Mono is the cyrillic fallback (not checked in VM)"
   fi
   log "fonts: done (not checked in VM)"
 }

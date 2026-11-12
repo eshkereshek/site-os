@@ -5,7 +5,7 @@
 | Компонент | Использование | Лицензия |
 |-----------|---------------|----------|
 | VT323 (assets/fonts/VT323-Regular.ttf) | основной шрифт тем | SIL Open Font License 1.1 (текст assets/fonts/OFL-VT323.txt) |
-| Unscii (`fonts-unscii`) | основной моноширинный шрифт | Public Domain (по данным пакета; проверить `/usr/share/doc/fonts-unscii/copyright` в VM) |
+
 | DejaVu Sans Mono (`fonts-dejavu-core`) | запасной шрифт для кириллицы | Bitstream Vera / DejaVu (свободная) |
 | Linux Mint XFCE (ISO) | основа образа | GPL и лицензии пакетов Ubuntu/Mint (см. состав ISO) |
 | XFCE (xfwm4, xfce4-panel, Thunar) | рабочая среда | GPL-2.0-or-later |

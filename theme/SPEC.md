@@ -49,9 +49,9 @@
 
 ## 2. Шрифты
 
-Основной: **VT323** (OFL, файл ssets/fonts/VT323-Regular.ttf, устанавливается в /usr/share/fonts/truetype/siteos/). Запасной: **Unscii** (onts-unscii). Для кириллицы при отсутствии покрытия — DejaVu Sans Mono. Terminus не используется (bitmap, Pango его не рисует).
+Основной: **VT323** (OFL, файл `assets/fonts/VT323-Regular.ttf`, устанавливается в `/usr/share/fonts/truetype/siteos/`). Запасной: **DejaVu Sans Mono** (`fonts-dejavu-core`). Unscii не используется: пакета `fonts-unscii` нет в Ubuntu noble (проверено по packages.ubuntu.com; сборка ISO на нём упала). Terminus не используется (bitmap, Pango его не рисует).
 
-Шаг install.sh --step fonts только печатает предупреждения, если c-list | grep -i vt323 ничего не нашёл или нет ru-покрытия. Не проверено в VM.
+Шаг `install.sh --step fonts` только печатает предупреждения, если `fc-list | grep -i vt323` ничего не нашёл или нет ru-покрытия. Не проверено в VM.
 ## 2.1 Локализация
 
 - ru/en через локаль (`LANG`) и gettext, без жёстких подписей в файлах темы.
