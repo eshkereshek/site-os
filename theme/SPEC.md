@@ -47,6 +47,12 @@
 
 Прозрачность остаётся только у рамки окна и панели (композитор).
 
+
+### 1.2 Выделение на рабочем столе (rubberband)
+
+- Прямоугольник выделения (rubberband): полупрозрачный красный rgba(178, 90, 98, 0.35) с рамкой rgba(178, 90, 98, 0.85) (производный от --btnx: #B25A62 из mockup.html).
+- Выделенная иконка / текст: подложка rgba(178, 90, 98, 0.45).
+
 ## 2. Шрифты
 
 Основной: **VT323** (OFL, файл `assets/fonts/VT323-Regular.ttf`, устанавливается в `/usr/share/fonts/truetype/siteos/`). Запасной: **DejaVu Sans Mono** (`fonts-dejavu-core`). Unscii не используется: пакета `fonts-unscii` нет в Ubuntu noble (проверено по packages.ubuntu.com; сборка ISO на нём упала). Terminus не используется (bitmap, Pango его не рисует).

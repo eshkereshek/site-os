@@ -1,8 +1,21 @@
-Programs,,,sub,programs
-Favorites,,,sub,favorites
-Settings,,,sub,settings
-Help,,,sub,help
-,,,separator,
-user,,,nop,
-Lock,,,exec,xflock4
-Power,,,exec,xfce4-session-logout
+^tag(programs)
+Terminal,xfce4-terminal,utilities-terminal
+File Explorer,thunar,system-file-manager
+System Monitor,xfce4-taskmanager,utilities-system-monitor
+Settings,xfce4-settings-manager,preferences-system
+About Site OS,sh -c "zenity --info --title='About Site OS' --text='Site OS 0.1\nLinux Mint XFCE base\nTheme: Site OS' 2>/dev/null || true",help-about
+
+^tag(favorites)
+Site,thunar /home/mint/Desktop/Site,folder
+Sessions,thunar /home/mint/Desktop/Sessions,folder
+Personal,thunar /home/mint/Desktop/Personal,folder
+Intake,thunar /home/mint/Desktop/Intake,folder
+
+Programs,^checkout(programs),system-run
+Favorites,^checkout(favorites),user-bookmarks
+Settings,xfce4-settings-manager,preferences-system
+Help,sh -c "zenity --info --title='Help' --text='SITE OS QUICK HELP\n\n- Click logo for Start menu\n- Double-click folders to open\n- Round buttons: minimize / close' 2>/dev/null || true",help-browser
+---,separator
+user,,user-home
+Lock,xflock4,system-lock-screen
+Power,xfce4-session-logout,system-shutdown
