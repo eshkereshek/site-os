@@ -36,8 +36,20 @@ jobs:
 
       - name: Download Linux Mint 22.3 XFCE and verify SHA256
         run: |
-          curl -fL --retry 3 -o "$MINT_ISO" "$MINT_URL"
-          echo "${MINT_SHA256}  ${MINT_ISO}" | sha256sum -c -
+          # Mirror resets long downloads; resume (-C -) and retry until the hash matches.
+          for attempt in 1 2 3 4 5 6; do
+            curl -fL --retry 5 --retry-delay 10 --retry-all-errors -C - \
+              -o "$MINT_ISO" "$MINT_URL" || true
+            if echo "${MINT_SHA256}  ${MINT_ISO}" | sha256sum -c --status -; then
+              echo "SHA256 OK (attempt ${attempt})"
+              exit 0
+            fi
+            echo "hash mismatch or incomplete download (attempt ${attempt}), retrying"
+            # A corrupt file cannot be resumed; start over after the second failure.
+            [ "$attempt" -ge 2 ] && rm -f "$MINT_ISO"
+          done
+          echo "ISO download or SHA256 check failed after retries" >&2
+          exit 1
 
       - name: Build ISO
         run: |
