@@ -1,0 +1,63 @@
+name: build-iso
+
+# Builds the Site OS ISO from the Linux Mint 22.3 XFCE image.
+# NOT CHECKED IN VM: the workflow has not been run yet.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MINT_ISO: linuxmint-22.3-xfce-64bit.iso
+      MINT_URL: https://mirrors.edge.kernel.org/linuxmint/stable/22.3/linuxmint-22.3-xfce-64bit.iso
+      # SHA256 from https://mirrors.edge.kernel.org/linuxmint/stable/22.3/sha256sum.txt
+      MINT_SHA256: 45a835b5dddaf40e84d776549e0b19b3fbd49673b6cc6434ebddbfcd217df776
+    steps:
+      - name: Free disk space on runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          sudo apt-get clean
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+            squashfs-tools xorriso rsync p7zip-full xz-utils
+
+      - name: Download Linux Mint 22.3 XFCE and verify SHA256
+        run: |
+          curl -fL --retry 3 -o "$MINT_ISO" "$MINT_URL"
+          echo "${MINT_SHA256}  ${MINT_ISO}" | sha256sum -c -
+
+      - name: Build ISO
+        run: |
+          sudo ./scripts/build_iso.sh "$MINT_ISO" out
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: siteos-iso
+          path: |
+            out/SITEOS.iso
+            out/SITEOS.iso.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Attach to GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/SITEOS.iso out/SITEOS.iso.sha256 \
+            --title "Site OS $GITHUB_REF_NAME" --notes "NOT CHECKED IN VM." \
+            || gh release upload "$GITHUB_REF_NAME" out/SITEOS.iso out/SITEOS.iso.sha256 --clobber
