@@ -1,0 +1,8 @@
+Programs,,,sub,programs
+Favorites,,,sub,favorites
+Settings,,,sub,settings
+Help,,,sub,help
+,,,separator,
+user,,,nop,
+Lock,,,exec,xflock4
+Power,,,exec,xfce4-session-logout
