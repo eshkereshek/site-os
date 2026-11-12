@@ -49,7 +49,7 @@
 
 ## 2. Шрифты
 
-Основной: **Terminus** (`fonts-terminus`). Кириллица VT323 и Share Tech Mono **не проверена** (`fc-list :lang=ru` нужно запустить в VM); по этой причине они не являются основными. Если Terminus не покрывает ru, в `install.sh` добавляется DejaVu Sans Mono.
+Основной: **Unscii** (`fonts-unscii`). Кириллица Unscii **не проверена** (`fc-list :lang=ru` нужно запустить в VM). Если Unscii не покрывает ru, `install.sh` ставит DejaVu Sans Mono как запасной шрифт для кириллицы. Terminus заменён по запросу (сборка ISO). VT323 и Share Tech Mono не используются как основные по той же причине.
 
 ## 2.1 Локализация
 

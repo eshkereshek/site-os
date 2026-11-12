@@ -14,7 +14,7 @@
 @define-color so_edge #A9B6C4;
 
 * {
-  font-family: "Terminus", "VT323", "DejaVu Sans Mono", monospace;
+  font-family: "Unscii", "DejaVu Sans Mono", monospace;
   font-size: 13px;
   color: @so_text;
 }

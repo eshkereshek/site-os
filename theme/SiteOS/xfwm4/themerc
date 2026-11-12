@@ -3,7 +3,7 @@
 # Frame is OPAQUE by design (fallback). Transparency is set via
 # compositor opacity in xfconf (see install.sh --step xfwm4-theme).
 # Two round buttons on the right (minimize, close); maximize/shade omitted.
-title_font = Terminus Bold 10
+title_font = Unscii 10
 button_layout = O|HMC
 title_alignment = left
 title_shadow_active = false
