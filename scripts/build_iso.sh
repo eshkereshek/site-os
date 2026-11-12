@@ -112,7 +112,9 @@ mount_chroot() {
   mount --bind /dev "${SQ_ROOT}/dev"; add_mount "${SQ_ROOT}/dev"
   mount --bind /dev/pts "${SQ_ROOT}/dev/pts"; add_mount "${SQ_ROOT}/dev/pts"
   mount -t tmpfs tmpfs "${SQ_ROOT}/run"; add_mount "${SQ_ROOT}/run"
-  # Keep DNS working for apt inside chroot.
+  # Keep DNS working for apt inside chroot. The squashfs resolv.conf is often a
+  # dangling symlink (systemd-resolved); remove it before writing a real file.
+  rm -f "${SQ_ROOT}/etc/resolv.conf"
   cp -L /etc/resolv.conf "${SQ_ROOT}/etc/resolv.conf"
 }
 
