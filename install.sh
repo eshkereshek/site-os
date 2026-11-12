@@ -10,7 +10,7 @@
 #
 # Usage:
 #   sudo ./install.sh --step all
-#   sudo ./install.sh --step fonts|wallpaper|gtk-theme|xfwm4-theme|xfce-config|branding|cache
+#   sudo ./install.sh --step fonts|wallpaper|gtk-theme|xfwm4-theme|xfce-config|desktop|branding|cache
 #   sudo ./install.sh --help
 
 set -euo pipefail
@@ -25,7 +25,12 @@ WALL_FILE="${WALL_DIR}/site-os-topo.png"
 SKEL="/etc/skel"
 SKEL_XFCE="${SKEL}/.config/xfce4/xfconf/xfce-perchannel-xml"
 THEME_DST="/usr/share/themes/${THEME_NAME}"
-FONT_FAMILY="Unscii"
+FONT_FAMILY="VT323"
+VT323_FAMILY="VT323"
+UNSCII_FAMILY="Unscii"
+FONT_SRC_TTF="${REPO}/assets/fonts/VT323-Regular.ttf"
+FONT_SRC_LICENSE="${REPO}/assets/fonts/OFL-VT323.txt"
+FONT_DST="/usr/share/fonts/truetype/siteos"
 
 log()  { printf '[site-os] %s\n' "$*"; }
 die()  { printf '[site-os][ERROR] %s\n' "$*" >&2; exit 1; }
@@ -39,12 +44,13 @@ Usage:
   sudo ./install.sh --step <name>
 
 Steps:
-  fonts         Unscii font (fonts-unscii), cyrillic check, DejaVu fallback
+  fonts         VT323 (repo TTF) primary, fonts-unscii fallback; warnings only
   wallpaper     topographic wallpaper + skel xfce4-desktop.xml
   gtk-theme     GTK 3 CSS theme + skel settings.ini
   xfwm4-theme   xfwm4 theme, buttons, skel xfwm4.xml
   xfce-config   skel xsettings.xml, xfce4-panel.xml, jgmenu, autostart
   branding      os-release, lsb-release, hostname, logo, live welcome
+  desktop       Thunar list view, desktop icons, optional devilspie2 title
   cache         fc-cache and icon caches
   all           every step above, in this order
 EOF
@@ -86,26 +92,34 @@ write_file() {
   mv -f "${path}.tmp" "$path"
 }
 
+# Primary font: VT323 (OFL) shipped in assets/fonts. Fallback: Unscii (fonts-unscii).
+# Terminus is NOT used (bitmap; Pango does not render it). Warnings only, no exit.
+# NOT CHECKED IN VM.
 step_fonts() {
-  log "step: fonts (${FONT_FAMILY}; cyrillic coverage checked below)"
-  apt_install fonts-unscii fontconfig
+  log "step: fonts (primary ${VT323_FAMILY} from repo, fallback ${UNSCII_FAMILY})"
+  check_path "${FONT_SRC_TTF}"
+  apt_install fontconfig fonts-unscii fonts-dejavu-core
 
-  # Capture output first: `fc-list | grep -q` can trip pipefail via SIGPIPE.
-  local families
-  families="$(fc-list : family)"
-  grep -qi "${FONT_FAMILY}" <<<"${families}" \
-    || die "${FONT_FAMILY} family not found after install (fc-list)"
+  install -d -m 0755 "${FONT_DST}"
+  install -m 0644 "${FONT_SRC_TTF}" "${FONT_DST}/VT323-Regular.ttf"
+  [[ -f "${FONT_SRC_LICENSE}" ]] && install -m 0644 "${FONT_SRC_LICENSE}" "${FONT_DST}/OFL-VT323.txt"
+  fc-cache -f >/dev/null 2>&1 || log "WARNING: fc-cache failed"
+
+  # Check, but do not fail: warn and continue so the rest of the build runs.
+  if fc-list | grep -qi "vt323"; then
+    log "fc-list: VT323 found"
+  else
+    log "WARNING: fc-list | grep -i vt323 found nothing; theme falls back to ${UNSCII_FAMILY} (not checked in VM)"
+  fi
 
   local ru
-  ru="$(fc-list :lang=ru family)"
-  if grep -qi "${FONT_FAMILY}" <<<"${ru}"; then
-    log "${FONT_FAMILY} has ru coverage"
+  ru="$(fc-list :lang=ru family 2>/dev/null || true)"
+  if grep -qi "${UNSCII_FAMILY}" <<<"${ru}"; then
+    log "${UNSCII_FAMILY} has ru coverage"
   else
-    log "WARNING: ${FONT_FAMILY} has no ru coverage; installing DejaVu Sans Mono as cyrillic fallback"
-    apt_install fonts-dejavu-core
+    log "WARNING: no ru coverage in ${UNSCII_FAMILY}; DejaVu Sans Mono is the cyrillic fallback"
   fi
-  fc-cache -f >/dev/null
-  log "fonts: done"
+  log "fonts: done (not checked in VM)"
 }
 
 step_wallpaper() {
@@ -136,6 +150,13 @@ step_wallpaper() {
       </property>
     </property>
   </property>
+  <property name="desktop-icons" type="empty">
+    <property name="style" type="int" value="2"/>
+    <property name="icon-size" type="uint" value="56"/>
+    <property name="font-size" type="double" value="13.5"/>
+    <property name="single-click" type="bool" value="true"/>
+    <property name="use-custom-font-size" type="bool" value="true"/>
+  </property>
 </channel>
 EOF
   log "wallpaper: ${WALL_FILE}"
@@ -153,7 +174,7 @@ step_gtk_theme() {
   write_file "${SKEL}/.config/gtk-3.0/settings.ini" <<EOF
 [Settings]
 gtk-theme-name=${THEME_NAME}
-gtk-font-name=${FONT_FAMILY} 11
+gtk-font-name=${FONT_FAMILY} 12
 gtk-application-prefer-dark-theme=1
 EOF
   log "gtk-theme: installed to ${THEME_DST} and ${SKEL}/.config/gtk-3.0"
@@ -169,28 +190,37 @@ step_xfwm4_theme() {
   mkdir -p "${dst}"
   install -m 0644 "${THEME_SRC}/xfwm4/themerc" "${dst}/themerc"
 
-  # xfwm4 expects per-state button pixmaps; reuse the same art for all states.
-  local state
-  for state in active inactive prelight pressed; do
-    install -m 0644 "${THEME_SRC}/xfwm4/xpm/minimize.xpm" "${dst}/minimize-${state}.xpm"
-    install -m 0644 "${THEME_SRC}/xfwm4/xpm/close.xpm" "${dst}/close-${state}.xpm"
+  # Per-state pixmaps: normal, and -hover (lighter, from tokens). NOT CHECKED IN VM.
+  local name
+  for name in minimize close; do
+    install -m 0644 "${THEME_SRC}/xfwm4/xpm/${name}.xpm" "${dst}/${name}-active.xpm"
+    install -m 0644 "${THEME_SRC}/xfwm4/xpm/${name}.xpm" "${dst}/${name}-inactive.xpm"
+    install -m 0644 "${THEME_SRC}/xfwm4/xpm/${name}-hover.xpm" "${dst}/${name}-prelight.xpm"
+    install -m 0644 "${THEME_SRC}/xfwm4/xpm/${name}-hover.xpm" "${dst}/${name}-pressed.xpm"
   done
 
+  # Compositing on; opacity comes from the themerc frame gradient (tokens frameOpacityPct).
   write_file "${SKEL_XFCE}/xfwm4.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
     <property name="theme" type="string" value="${THEME_NAME}"/>
     <property name="use_compositing" type="bool" value="true"/>
-    <property name="button_layout" type="string" value="O|HMC"/>
+    <property name="button_layout" type="string" value="|HC"/>
+    <property name="title_font" type="string" value="${FONT_FAMILY} 11"/>
+    <property name="title_alignment" type="string" value="left"/>
+    <property name="frame_opacity" type="int" value="94"/>
+    <property name="inactive_opacity" type="int" value="94"/>
+    <property name="show_app_icon" type="bool" value="false"/>
   </property>
 </channel>
 EOF
-  log "xfwm4-theme: installed to ${dst} (opaque frame; transparency via compositor only)"
+  log "xfwm4-theme: installed to ${dst}, skel xfwm4.xml (not checked in VM)"
 }
 
 step_xfce_config() {
   log "step: xfce-config (files in ${SKEL} only, no X session)"
+  apt_install jgmenu xfce4-genmon-plugin thunar
 
   write_file "${SKEL_XFCE}/xsettings.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -199,25 +229,24 @@ step_xfce_config() {
     <property name="ThemeName" type="string" value="${THEME_NAME}"/>
   </property>
   <property name="Gtk" type="empty">
-    <property name="FontName" type="string" value="${FONT_FAMILY} 11"/>
+    <property name="FontName" type="string" value="${FONT_FAMILY} 12"/>
     <property name="CursorThemeSize" type="int" value="24"/>
   </property>
 </channel>
 EOF
 
-  # Single bottom panel: application menu, task list, systray, clock.
-  # Position code p=8 (bottom) and plugin ids are NOT CHECKED IN VM.
+  # Bottom panel, 44px: logo launcher (jgmenu), tasklist, genmon status, clock off.
+  # Plugin ids and position code are NOT CHECKED IN VM.
   write_file "${SKEL_XFCE}/xfce4-panel.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-panel" version="1.0">
   <property name="configver" type="int" value="2"/>
-  <property name="dark-mode" type="bool" value="true"/>
   <property name="panels" type="array">
     <value type="int" value="1"/>
     <property name="panel-1" type="empty">
       <property name="position" type="string" value="p=8;x=0;y=0"/>
       <property name="position-locked" type="bool" value="true"/>
-      <property name="size" type="uint" value="30"/>
+      <property name="size" type="uint" value="44"/>
       <property name="length" type="uint" value="100"/>
       <property name="plugin-ids" type="array">
         <value type="int" value="1"/>
@@ -228,23 +257,26 @@ EOF
     </property>
   </property>
   <property name="plugins" type="empty">
-    <property name="plugin-1" type="string" value="applicationsmenu"/>
+    <property name="plugin-1" type="string" value="launcher"/>
     <property name="plugin-2" type="string" value="tasklist"/>
-    <property name="plugin-3" type="string" value="systray"/>
-    <property name="plugin-4" type="string" value="clock"/>
+    <property name="plugin-3" type="string" value="genmon"/>
+    <property name="plugin-4" type="string" value="systray"/>
   </property>
 </channel>
 EOF
 
-  # jgmenu: colours mirror the theme; the Win9x menu content is stage 2.
-  write_file "${SKEL}/.config/jgmenu/jgmenurc" <<EOF
-# Site OS jgmenu colours (opaque, from theme/SPEC.md). NOT CHECKED IN VM.
-font_name = ${FONT_FAMILY} 11
-color_menu_bg = #3A4550
-color_menu_fg = #E8EAF0
-color_sel_bg = #5E6688
-color_sel_fg = #E8EAF0
-EOF
+  # Logo launcher: opens jgmenu. Logo path is the repo SVG, copied to /usr/share/pixmaps.
+  install -d -m 0755 "${SKEL}/.config/jgmenu"
+  install -m 0644 "${REPO}/configs/jgmenu/jgmenurc" "${SKEL}/.config/jgmenu/jgmenurc"
+  install -m 0644 "${REPO}/configs/jgmenu/prepend.csv" "${SKEL}/.config/jgmenu/prepend.csv"
+
+  # Genmon status line: "LAN: CONNECTED · SITE OS 0.1 · HH:MM:SS".
+  install -d -m 0755 /usr/local/share/siteos
+  install -m 0755 "${REPO}/configs/genmon/siteos-status.sh" /usr/local/share/siteos/siteos-status.sh
+
+  # Terminal palette (mockup Terminal window).
+  install -d -m 0755 "${SKEL}/.config/xfce4/terminal"
+  install -m 0644 "${REPO}/configs/xfce4-terminal/terminalrc" "${SKEL}/.config/xfce4/terminal/terminalrc"
 
   # Disable the Mint welcome screen for new (and live) users.
   write_file "${SKEL}/.config/autostart/mintwelcome.desktop" <<'EOF'
@@ -253,8 +285,9 @@ Type=Application
 Name=Welcome (disabled in Site OS)
 Hidden=true
 EOF
-  log "xfce-config: done"
+  log "xfce-config: done (not checked in VM)"
 }
+
 
 step_branding() {
   log "step: branding (Site OS names; Linux Mint logos removed)"
@@ -314,6 +347,50 @@ EOF
   log "branding: done (not checked in VM)"
 }
 
+step_desktop() {
+  log "step: desktop (Thunar list view, desktop icons, optional devilspie2 title) not checked in VM"
+
+  # Thunar list view. Key names are NOT CHECKED IN VM (verify in Thunar prefs).
+  write_file "${SKEL}/.config/Thunar/thunarrc" <<'EOF'
+[Configuration]
+DefaultView=ThunarDetailsView
+ShowHidden=FALSE
+ShowThumbnails=THUNAR_THUMBNAIL_MODE_NEVER
+EOF
+
+  # Desktop icon settings (single click, size, font) live in xfce4-desktop.xml,
+  # written by step_wallpaper; that file is the only xfce4-desktop.xml.
+  # Icon theme folder: install SVGs as icons for xfdesktop (not in mockup icon set).
+  install -d -m 0755 /usr/share/icons/hicolor/scalable/places
+  install -m 0644 "${REPO}/assets/icons/folder.svg" /usr/share/icons/hicolor/scalable/places/siteos-folder.svg
+  install -d -m 0755 /usr/share/icons/hicolor/scalable/mimetypes
+  install -m 0644 "${REPO}/assets/icons/file.svg" /usr/share/icons/hicolor/scalable/mimetypes/siteos-file.svg
+
+  # Optional: devilspie2 rewrites the Thunar title to "File Explorer - Desktop\<path>\".
+  # Done last; a failure here does not stop the build.
+  if apt_install devilspie2 >/dev/null 2>&1; then
+    write_file "${SKEL}/.config/devilspie2/thunar.lua" <<'EOF'
+-- Thunar title: "File Explorer - Desktop\<path>\". NOT CHECKED IN VM.
+if get_application_name() == "Thunar" then
+  local p = get_window_name()
+  local d = p:gsub("^.-:%s*", "")
+  set_window_name("File Explorer - " .. d)
+end
+EOF
+    write_file "${SKEL}/.config/autostart/devilspie2.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=devilspie2
+Exec=devilspie2
+Hidden=false
+EOF
+    log "desktop: devilspie2 installed (optional, title rule not checked in VM)"
+  else
+    log "WARNING: devilspie2 not available; Thunar title stays default (not checked in VM)"
+  fi
+  log "desktop: done (not checked in VM)"
+}
+
 step_cache() {
   log "step: cache"
   fc-cache -f >/dev/null
@@ -336,6 +413,7 @@ run_step() {
     xfwm4-theme)  step_xfwm4_theme ;;
     xfce-config)  step_xfce_config ;;
     branding)     step_branding ;;
+    desktop)      step_desktop ;;
     cache)        step_cache ;;
     all)
       step_fonts
@@ -344,9 +422,10 @@ run_step() {
       step_xfwm4_theme
       step_xfce_config
       step_branding
+      step_desktop
       step_cache
       ;;
-    *) die "unknown step: $1 (fonts|wallpaper|gtk-theme|xfwm4-theme|xfce-config|branding|cache|all)" ;;
+    *) die "unknown step: $1 (fonts|wallpaper|gtk-theme|xfwm4-theme|xfce-config|desktop|branding|cache|all)" ;;
   esac
 }
 
