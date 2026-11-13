@@ -861,15 +861,18 @@ stay_alive = 0
         'Sessions,sh -c "thunar ~/Desktop/Sessions",folder',
         'Personal,sh -c "thunar ~/Desktop/Personal",folder',
         'Intake,sh -c "thunar ~/Desktop/Intake",folder',
+        'Desktop,sh -c "thunar ~/Desktop",user-desktop',
+        'Home,sh -c "thunar ~",user-home',
         "",
         "Programs,^checkout(programs),system-run",
         "Favorites,^checkout(favorites),user-bookmarks",
         "Settings,xfce4-settings-manager,preferences-system",
-        'Help,sh -c "zenity --info --title=\'Help\' --text=\'SITE OS QUICK HELP\\n\\n- Click logo for Start menu\\n- Double-click folders to open\\n- Round buttons: minimize / close\' 2>/dev/null || true",help-browser',
+        'Help,sh -c "zenity --info --title=\'Help\' --text=\'SITE OS QUICK HELP\\n\\n- Click logo for Start menu\\n- Double-click folders to open\\n- Round buttons: minimize / close\\n- ▲: Eject disc drive\\n- ⏻: Power off\' 2>/dev/null || true",help-browser',
         "---,separator",
         "user,,user-home",
+        'Eject Disc (▲),sh -c "eject -T 2>/dev/null || eject 2>/dev/null || true",media-eject',
         "Lock,xflock4,system-lock-screen",
-        "Power,xfce4-session-logout,system-shutdown",
+        "Power (⏻),xfce4-session-logout,system-shutdown",
     ]
     write(os.path.join(JG_DIR, "jgmenurc"), rc)
     write(os.path.join(JG_DIR, "prepend.csv"), "\n".join(csv) + "\n")

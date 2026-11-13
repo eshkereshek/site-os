@@ -3,19 +3,22 @@ Terminal,xfce4-terminal,utilities-terminal
 File Explorer,thunar,system-file-manager
 System Monitor,xfce4-taskmanager,utilities-system-monitor
 Settings,xfce4-settings-manager,preferences-system
-About Site OS,sh -c "zenity --info --title='About Site OS' --text='Site OS 0.1\nLinux Mint XFCE base\nTheme: Site OS' 2>/dev/null || true",help-about
+About Site OS,sh -c "zenity --info --title='About Site OS' --text='Site OS 1.0\nLinux Mint XFCE base\nTheme: Site OS' 2>/dev/null || true",help-about
 
 ^tag(favorites)
 Site,sh -c "thunar ~/Desktop/Site",folder
 Sessions,sh -c "thunar ~/Desktop/Sessions",folder
 Personal,sh -c "thunar ~/Desktop/Personal",folder
 Intake,sh -c "thunar ~/Desktop/Intake",folder
+Desktop,sh -c "thunar ~/Desktop",user-desktop
+Home,sh -c "thunar ~",user-home
 
 Programs,^checkout(programs),system-run
 Favorites,^checkout(favorites),user-bookmarks
 Settings,xfce4-settings-manager,preferences-system
-Help,sh -c "zenity --info --title='Help' --text='SITE OS QUICK HELP\n\n- Click logo for Start menu\n- Double-click folders to open\n- Round buttons: minimize / close' 2>/dev/null || true",help-browser
+Help,sh -c "zenity --info --title='Help' --text='SITE OS QUICK HELP\n\n- Click logo for Start menu\n- Double-click folders to open\n- Round buttons: minimize / close\n- ▲: Eject disc drive\n- ⏻: Power off' 2>/dev/null || true",help-browser
 ---,separator
 user,,user-home
+Eject Disc (▲),sh -c "eject -T 2>/dev/null || eject 2>/dev/null || true",media-eject
 Lock,xflock4,system-lock-screen
-Power,xfce4-session-logout,system-shutdown
+Power (⏻),xfce4-session-logout,system-shutdown

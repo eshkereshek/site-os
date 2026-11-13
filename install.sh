@@ -301,7 +301,7 @@ EOF
 
 step_xfce_config() {
   log "step: xfce-config (files in ${SKEL} and /etc/xdg, no X session)"
-  apt_install jgmenu xfce4-genmon-plugin thunar
+  apt_install python3 python3-gi python3-gi-cairo gir1.2-gtk-3.0 eject zenity jgmenu xfce4-genmon-plugin thunar
 
   write_file "${SKEL_XFCE}/xsettings.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -374,10 +374,19 @@ EOF
 EOF
   sync_channel "xfce4-panel"
 
-  # Executable wrapper for Start button (direct jgmenu with clean fallbacks)
+  # Site OS custom Start Menu (mockup 1:1 with app column, eject & power buttons)
+  install -d -m 0755 /usr/local/bin "${SKEL}/.local/bin"
+  install -m 0755 "${REPO}/scripts/siteos-menu.py" /usr/local/bin/siteos-menu.py
+  install -m 0755 "${REPO}/scripts/siteos-menu.py" "${SKEL}/.local/bin/siteos-menu.py"
+
+  # Executable wrapper for Start button (runs siteos-menu.py first, fallbacks to jgmenu)
   write_file /usr/bin/siteos-menu <<'EOF'
 #!/bin/sh
-if command -v jgmenu >/dev/null 2>&1; then
+if [ -x /usr/local/bin/siteos-menu.py ] && command -v python3 >/dev/null 2>&1; then
+  exec python3 /usr/local/bin/siteos-menu.py "$@"
+elif [ -f "${HOME}/.local/bin/siteos-menu.py" ] && command -v python3 >/dev/null 2>&1; then
+  exec python3 "${HOME}/.local/bin/siteos-menu.py" "$@"
+elif command -v jgmenu >/dev/null 2>&1; then
   if [ -f "$HOME/.config/jgmenu/jgmenurc" ]; then
     exec jgmenu --config-file="$HOME/.config/jgmenu/jgmenurc" --csv-file="$HOME/.config/jgmenu/prepend.csv"
   elif [ -f "/etc/jgmenu/jgmenurc" ]; then
