@@ -1,11 +1,8 @@
 #!/bin/sh
-# Site OS Genmon WiFi / Network Status Button
+# Site OS Genmon WiFi / Network Status Button (instant non-blocking sysfs)
 status="LAN: DISCONNECTED"
 color="#A0A8B4"
-if ip route get 1.1.1.1 2>/dev/null | grep -q 'dev'; then
-  status="LAN: CONNECTED"
-  color="#B9D8C6"
-elif ip route get 8.8.8.8 2>/dev/null | grep -q 'dev'; then
+if grep -q "up" /sys/class/net/[ew]*/operstate 2>/dev/null; then
   status="LAN: CONNECTED"
   color="#B9D8C6"
 fi

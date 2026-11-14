@@ -282,7 +282,7 @@ step_xfwm4_theme() {
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
     <property name="theme" type="string" value="${THEME_NAME}"/>
-    <property name="use_compositing" type="bool" value="false"/>
+    <property name="use_compositing" type="bool" value="true"/>
     <property name="button_layout" type="string" value="|HC"/>
     <property name="title_font" type="string" value="${FONT_FAMILY} 16"/>
     <property name="title_alignment" type="string" value="left"/>
@@ -291,6 +291,15 @@ step_xfwm4_theme() {
     <property name="button_spacing" type="int" value="7"/>
     <property name="frame_opacity" type="int" value="100"/>
     <property name="inactive_opacity" type="int" value="100"/>
+    <property name="move_opacity" type="int" value="85"/>
+    <property name="resize_opacity" type="int" value="85"/>
+    <property name="popup_opacity" type="int" value="98"/>
+    <property name="show_frame_shadow" type="bool" value="true"/>
+    <property name="show_popup_shadow" type="bool" value="true"/>
+    <property name="shadow_opacity" type="int" value="50"/>
+    <property name="shadow_radius" type="int" value="20"/>
+    <property name="shadow_delta_x" type="int" value="0"/>
+    <property name="shadow_delta_y" type="int" value="6"/>
     <property name="show_app_icon" type="bool" value="false"/>
   </property>
 </channel>
@@ -301,7 +310,7 @@ EOF
 
 step_xfce_config() {
   log "step: xfce-config (files in ${SKEL} and /etc/xdg, no X session)"
-  apt_install picom python3 python3-gi python3-gi-cairo gir1.2-gtk-3.0 eject zenity jgmenu xfce4-genmon-plugin thunar
+  apt_install python3 python3-gi python3-gi-cairo gir1.2-gtk-3.0 eject zenity jgmenu xfce4-genmon-plugin thunar
 
   write_file "${SKEL_XFCE}/xsettings.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -312,26 +321,11 @@ step_xfce_config() {
   <property name="Gtk" type="empty">
     <property name="FontName" type="string" value="${FONT_FAMILY} 12"/>
     <property name="CursorThemeSize" type="int" value="24"/>
+    <property name="EnableAnimations" type="bool" value="true"/>
   </property>
 </channel>
 EOF
   sync_channel "xsettings"
-
-  # Picom compositor for silky window animations, dual kawase blur & soft shadows
-  install -d -m 0755 /etc/xdg /etc/xdg/autostart "${SKEL}/.config/picom" "${SKEL}/.config/autostart"
-  install -m 0644 "${REPO}/configs/picom/picom.conf" /etc/xdg/picom.conf
-  install -m 0644 "${REPO}/configs/picom/picom.conf" "${SKEL}/.config/picom/picom.conf"
-
-  write_file /etc/xdg/autostart/picom.desktop <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=Picom Compositor
-Comment=Window animations and blur for Site OS
-Exec=picom -b --config /etc/xdg/picom.conf
-Terminal=false
-Hidden=false
-EOF
-  install -m 0644 /etc/xdg/autostart/picom.desktop "${SKEL}/.config/autostart/picom.desktop"
 
   # Panel 44px matching mockup.html #panel:
   # [Start] | [tasklist] ... [expand] ... | [WiFi: LAN CONNECTED] | [systray] | [clock]
@@ -515,12 +509,10 @@ EOF
   local h
   for h in /home/*; do
     if [[ -d "$h" && "$h" != "/home/*" ]]; then
-      mkdir -p "${h}/.config/jgmenu" "${h}/.config/xfce4/terminal" "${h}/.config/xfce4/panel/launcher-1" "${h}/.local/share/applications" "${h}/.local/bin" "${h}/.config/autostart" "${h}/.config/picom"
+      mkdir -p "${h}/.config/jgmenu" "${h}/.config/xfce4/terminal" "${h}/.config/xfce4/panel/launcher-1" "${h}/.local/share/applications" "${h}/.local/bin" "${h}/.config/autostart"
       install -m 0644 "${REPO}/configs/jgmenu/jgmenurc" "${h}/.config/jgmenu/jgmenurc"
       install -m 0644 "${REPO}/configs/jgmenu/prepend.csv" "${h}/.config/jgmenu/prepend.csv"
       install -m 0644 "${REPO}/configs/xfce4-terminal/terminalrc" "${h}/.config/xfce4/terminal/terminalrc"
-      install -m 0644 "${REPO}/configs/picom/picom.conf" "${h}/.config/picom/picom.conf"
-      install -m 0644 /etc/xdg/autostart/picom.desktop "${h}/.config/autostart/picom.desktop"
       install -m 0755 "${REPO}/scripts/siteos-menu.py" "${h}/.local/bin/siteos-menu.py"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.local/share/applications/siteos-start.desktop"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.config/xfce4/panel/launcher-1/siteos-start.desktop"
