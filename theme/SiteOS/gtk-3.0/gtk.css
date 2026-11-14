@@ -167,120 +167,213 @@ menu menu {
   border-radius: 6px;
 }
 
-/* ------------------------------------------------------------- Thunar Windows Explorer Layout */
+/* ------------------------------------------------------------- Thunar Windows 10/11 Dark File Explorer */
 thunar window,
-.thunar {
-  background-color: @so_body;
+.thunar,
+thunar .view,
+.thunar .view {
+  background-color: #191919;
+  color: #E8EAF0;
 }
 
-/* Left Navigation Sidebar */
+/* Left Navigation Sidebar (Shortcuts Pane - Windows 11 Style) */
 thunar .sidebar,
 .thunar .sidebar,
-thunar scrolledwindow.sidebar {
-  background-color: #27303c;
-  color: @so_text;
-  border-right: 1px solid rgba(210, 220, 235, 0.18);
+thunar scrolledwindow.sidebar,
+thunar .shortcuts-pane {
+  background-color: #181818;
+  color: #D5D9E3;
+  border-right: 1px solid #2B2B2B;
 }
+
 thunar .sidebar treeview.view,
 .thunar .sidebar treeview.view {
-  background-color: transparent;
-  color: @so_text;
+  background-color: #181818;
+  color: #D5D9E3;
   padding: 4px;
 }
+
 thunar .sidebar treeview.view:hover,
 .thunar .sidebar treeview.view row:hover {
-  background-color: rgba(255, 255, 255, 0.07);
+  background-color: #262626;
+  border-radius: 4px;
 }
+
 thunar .sidebar treeview.view:selected,
 thunar .sidebar treeview.view row:selected {
-  background-color: #405067;
+  background-color: #2B3545;
   color: #FFFFFF;
   border-radius: 4px;
 }
 
-/* Top Menubar & Toolbar */
+/* Top Menubar & Command Toolbar (Windows 11 Style) */
 thunar menubar,
 .thunar menubar {
-  background-color: #2c3643;
-  color: @so_text;
-  border-bottom: 1px solid rgba(210, 220, 235, 0.12);
+  background-color: #1F1F1F;
+  color: #D5D9E3;
+  border-bottom: 1px solid #282828;
   padding: 2px 4px;
 }
+
 thunar toolbar,
 .thunar toolbar {
-  background-color: #2f3a49;
-  border-bottom: 1px solid rgba(210, 220, 235, 0.18);
-  padding: 3px 6px;
+  background-color: #1F1F1F;
+  border-bottom: 1px solid #2B2B2B;
+  padding: 4px 8px;
 }
 
-/* Location & Breadcrumb Navigation Bar */
+thunar toolbar button,
+.thunar toolbar button {
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #E8EAF0;
+  padding: 4px 8px;
+  margin: 0 1px;
+}
+
+thunar toolbar button:hover,
+.thunar toolbar button:hover {
+  background-color: #2D2D2D;
+  color: #FFFFFF;
+}
+
+/* Location & Breadcrumb Navigation Bar (Windows 11 Rounded Bar) */
 thunar .location-bar,
 .thunar .location-bar,
 thunar .path-bar,
 .thunar .path-bar {
-  background-color: #27313e;
-  border-bottom: 1px solid rgba(210, 220, 235, 0.18);
+  background-color: #1F1F1F;
+  border-bottom: 1px solid #282828;
   padding: 4px 8px;
 }
+
 thunar .path-bar button,
 .thunar .path-bar button {
-  background-color: #384556;
-  border: 1px solid rgba(210, 220, 235, 0.22);
-  border-radius: 4px !important;
-  color: @so_text;
+  background-color: #252525;
+  border: 1px solid #383838;
+  border-radius: 6px !important;
+  color: #E8EAF0;
   padding: 3px 10px;
   margin: 1px 2px;
 }
+
 thunar .path-bar button:hover,
 .thunar .path-bar button:hover {
-  background-color: #46576d;
+  background-color: #333333;
   color: #FFFFFF;
+}
+
+thunar entry,
+.thunar entry {
+  background-color: #252525;
+  color: #FFFFFF;
+  border: 1px solid #383838;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+thunar entry:focus,
+.thunar entry:focus {
+  border-color: #4A6E9B;
 }
 
 /* Bottom Statusbar */
 thunar statusbar,
 .thunar statusbar {
-  background-color: #27303c;
-  color: @so_text2;
-  border-top: 1px solid rgba(210, 220, 235, 0.15);
-  padding: 3px 10px;
-  font-size: 13pt;
+  background-color: #181818;
+  color: #8A919D;
+  border-top: 1px solid #282828;
+  padding: 3px 12px;
+  font-size: 11pt;
 }
 
-/* File list (Thunar GtkTreeView) */
+/* File list (Thunar Details View - Windows 11 Dark Rows) */
 treeview.view,
 GtkTreeView {
-  background-color: @so_body;
-  color: @so_text;
+  background-color: #191919;
+  color: #E8EAF0;
   border-radius: 0;
 }
+
 treeview.view:nth-child(even),
 treeview.view row:nth-child(even) {
-  background-color: #7E84A6;
-  background-image: linear-gradient(90deg, #6C7295, #9096B8);
+  background-color: #191919;
+  color: #E8EAF0;
 }
+
 treeview.view:nth-child(odd),
 treeview.view row:nth-child(odd) {
-  background-color: #8C91B3;
-  background-image: linear-gradient(90deg, #7A7FA2, #9EA3C4);
+  background-color: #1D1D1D;
+  color: #E8EAF0;
 }
+
+treeview.view:hover,
+treeview.view row:hover {
+  background-color: #282828;
+  color: #FFFFFF;
+}
+
 treeview.view:selected,
 treeview.view:selected:focus,
 treeview.view row:selected,
 treeview.view row:selected:focus {
-  background-color: #B1B6D6;
-  background-image: linear-gradient(90deg, #9FA5CB, #C3C8E2);
-  color: @so_sel_text;
+  background-color: #2B3545;
+  color: #FFFFFF;
 }
+
 treeview.view header button,
 treeview.view header button:hover {
-  background-image: linear-gradient(180deg, rgba(104,115,134,0.94), rgba(60,70,85,0.94));
-  background-color: #4B5562;
-  color: @so_text2;
+  background-color: #1E1E1E;
+  color: #9DA3AE;
   border: none;
-  border-bottom: 1px solid @so_edge;
+  border-bottom: 1px solid #2D2D2D;
+  border-right: 1px solid #282828;
   border-radius: 0;
-  padding: 4px 8px;
+  padding: 6px 10px;
+  font-size: 11pt;
+}
+
+treeview.view header button:hover {
+  background-color: #282828;
+  color: #FFFFFF;
+}
+
+/* ------------------------------------------------------------- Site OS Error & Alert Windows (Mockup 1:1) */
+dialog,
+messagedialog,
+window.dialog,
+window.messagedialog,
+.siteos-dialog {
+  background-image: linear-gradient(135deg, #59414F, #3C4655);
+  border: 1px solid rgba(210, 220, 235, 0.38);
+  border-radius: 6px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+  color: #E8EAF0;
+}
+
+dialog .dialog-action-area,
+messagedialog .dialog-action-area {
+  background: transparent;
+  padding: 10px 14px 14px;
+}
+
+dialog .dialog-action-area button,
+messagedialog .dialog-action-area button,
+.siteos-btn {
+  font-family: "VT323", "DejaVu Sans Mono", monospace;
+  font-size: 19px;
+  color: #1E2530;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background-image: linear-gradient(180deg, #C8CCE4, #9096B8);
+  padding: 4px 22px;
+  border-radius: 2px;
+}
+
+dialog .dialog-action-area button:hover,
+messagedialog .dialog-action-area button:hover,
+.siteos-btn:hover {
+  background-image: linear-gradient(180deg, #DCE0F5, #A3A9CC);
 }
 
 scrollbar slider {

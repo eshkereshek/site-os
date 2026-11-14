@@ -3,7 +3,7 @@
 
 Matches assets/reference/Site OS — desktop mockup.html 1:1:
   - Left panel (290px): Start title, Programs ▸, Favorites ▸, Settings, Help, fill spacer, user footer with [▲] (eject) and [⏻] (power)
-  - Right panel (220-300px): Submenu column popping out with applications or favorites on click / hover
+  - Right panel (230-300px): Submenu column popping out with applications or favorites on click / hover
   - Eject button [▲]: toggles optical disc drive (eject -T || eject)
   - Power button [⏻]: launches xfce4-session-logout
   - Single-instance toggle via PID file (click Start to open, click Start again to close)
@@ -70,7 +70,7 @@ window.menu-window {
   background-color: #C5CAD6;
   border: 2px solid #2F3B48;
   padding: 4px;
-  min-width: 220px;
+  min-width: 230px;
   max-width: 320px;
 }
 
@@ -270,8 +270,10 @@ class SiteOSMenuWindow(Gtk.Window):
         self.set_decorated(False)
         self.set_skip_taskbar_hint(True)
         self.set_skip_pager_hint(True)
-        self.set_type_hint(Gdk.WindowTypeHint.POPUP_MENU)
+        # Using UTILITY hint ensures clicks and focus work properly without override-redirect issues
+        self.set_type_hint(Gdk.WindowTypeHint.UTILITY)
         self.set_keep_above(True)
+        self.set_can_focus(True)
         self.stick()
 
         self.get_style_context().add_class("menu-window")
@@ -370,9 +372,8 @@ class SiteOSMenuWindow(Gtk.Window):
         self.sub_scroll.add(self.sub_box)
         self.container.pack_start(self.sub_scroll, True, True, 0)
 
-        # Start with submenu hidden (matches mockup .sub { display: none; })
-        self.sub_scroll.set_no_show_all(True)
-        self.sub_scroll.hide()
+        # Submenu starts hidden
+        self.sub_scroll.set_visible(False)
 
         # Events
         self.connect("key-press-event", self.on_key_press)
@@ -430,17 +431,19 @@ class SiteOSMenuWindow(Gtk.Window):
         if cat == "programs":
             self.btn_programs.get_style_context().add_class("active")
             self.populate_programs_sub()
-            self.sub_scroll.show_all()
+            self.sub_scroll.set_visible(True)
+            self.sub_box.show_all()
         elif cat == "favorites":
             self.btn_favorites.get_style_context().add_class("active")
             self.populate_favorites_sub()
-            self.sub_scroll.show_all()
+            self.sub_scroll.set_visible(True)
+            self.sub_box.show_all()
 
     def hide_sub(self):
         self.active_category = None
         self.btn_programs.get_style_context().remove_class("active")
         self.btn_favorites.get_style_context().remove_class("active")
-        self.sub_scroll.hide()
+        self.sub_scroll.set_visible(False)
         self.resize(1, 1)
 
     def populate_programs_sub(self):
@@ -510,7 +513,10 @@ class SiteOSMenuWindow(Gtk.Window):
             "- Double-click folders to explore\\n"
             "- Round buttons: minimize / maximize / close"
         )
-        self.launch_and_close(f"zenity --info --title='Help' --text='{msg}' 2>/dev/null || true")
+        self.launch_and_close(
+            f"siteos-dialog --info --title='Help' --message='{msg}' 2>/dev/null || zenity --info"
+            f" --title='Help' --text='{msg}' 2>/dev/null || true"
+        )
 
     def on_eject_clicked(self, widget):
         self.cleanup_and_quit()
@@ -539,17 +545,13 @@ class SiteOSMenuWindow(Gtk.Window):
         return False
 
     def on_size_allocate(self, widget, allocation):
-        display = Gdk.Display.get_default()
-        monitor = (
-            display.get_primary_monitor()
-            or display.get_monitor_at_point(0, 0)
-            or display.get_monitor(0)
-        )
-        geom = monitor.get_geometry() if monitor else Gdk.Rectangle()
+        screen = Gdk.Screen.get_default()
+        sw = screen.get_width() if screen else 1920
+        sh = screen.get_height() if screen else 1080
         panel_height = 46
         gap = 8
-        target_x = geom.x + gap
-        target_y = geom.y + geom.height - panel_height - allocation.height - gap
+        target_x = gap
+        target_y = sh - panel_height - allocation.height - gap
 
         last_pos = getattr(self, "_last_pos", None)
         if last_pos != (target_x, target_y):
@@ -574,6 +576,9 @@ def main():
 
     win = SiteOSMenuWindow()
     win.show_all()
+    # Ensure submenu stays hidden on initial open
+    win.sub_scroll.set_visible(False)
+    win.present()
     Gtk.main()
 
 

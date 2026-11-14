@@ -282,7 +282,7 @@ step_xfwm4_theme() {
 <channel name="xfwm4" version="1.0">
   <property name="general" type="empty">
     <property name="theme" type="string" value="${THEME_NAME}"/>
-    <property name="use_compositing" type="bool" value="true"/>
+    <property name="use_compositing" type="bool" value="false"/>
     <property name="button_layout" type="string" value="|HC"/>
     <property name="title_font" type="string" value="${FONT_FAMILY} 16"/>
     <property name="title_alignment" type="string" value="left"/>
@@ -301,7 +301,7 @@ EOF
 
 step_xfce_config() {
   log "step: xfce-config (files in ${SKEL} and /etc/xdg, no X session)"
-  apt_install python3 python3-gi python3-gi-cairo gir1.2-gtk-3.0 eject zenity jgmenu xfce4-genmon-plugin thunar
+  apt_install picom python3 python3-gi python3-gi-cairo gir1.2-gtk-3.0 eject zenity jgmenu xfce4-genmon-plugin thunar
 
   write_file "${SKEL_XFCE}/xsettings.xml" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -317,7 +317,24 @@ step_xfce_config() {
 EOF
   sync_channel "xsettings"
 
-  # Panel 44px: launcher (Start button) | tasklist | separator (expand) | genmon status | systray
+  # Picom compositor for silky window animations, dual kawase blur & soft shadows
+  install -d -m 0755 /etc/xdg /etc/xdg/autostart "${SKEL}/.config/picom" "${SKEL}/.config/autostart"
+  install -m 0644 "${REPO}/configs/picom/picom.conf" /etc/xdg/picom.conf
+  install -m 0644 "${REPO}/configs/picom/picom.conf" "${SKEL}/.config/picom/picom.conf"
+
+  write_file /etc/xdg/autostart/picom.desktop <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Picom Compositor
+Comment=Window animations and blur for Site OS
+Exec=picom -b --config /etc/xdg/picom.conf
+Terminal=false
+Hidden=false
+EOF
+  install -m 0644 /etc/xdg/autostart/picom.desktop "${SKEL}/.config/autostart/picom.desktop"
+
+  # Panel 44px matching mockup.html #panel:
+  # [Start] | [tasklist] ... [expand] ... | [WiFi: LAN CONNECTED] | [systray] | [clock]
   write_file "${SKEL_XFCE}/xfce4-panel.xml" <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="xfce4-panel" version="1.0">
@@ -336,6 +353,11 @@ EOF
         <value type="int" value="3"/>
         <value type="int" value="4"/>
         <value type="int" value="5"/>
+        <value type="int" value="6"/>
+        <value type="int" value="7"/>
+        <value type="int" value="8"/>
+        <value type="int" value="9"/>
+        <value type="int" value="10"/>
       </property>
     </property>
   </property>
@@ -348,31 +370,59 @@ EOF
       <property name="move-first" type="bool" value="false"/>
       <property name="arrow-position" type="uint" value="5"/>
     </property>
-    <property name="plugin-2" type="string" value="tasklist">
+    <property name="plugin-2" type="string" value="separator">
+      <property name="style" type="uint" value="1"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-3" type="string" value="tasklist">
       <property name="grouping" type="uint" value="0"/>
       <property name="show-labels" type="bool" value="true"/>
       <property name="flat-buttons" type="bool" value="true"/>
       <property name="show-handle" type="bool" value="false"/>
       <property name="sort-order" type="uint" value="4"/>
     </property>
-    <property name="plugin-3" type="string" value="separator">
+    <property name="plugin-4" type="string" value="separator">
       <property name="expand" type="bool" value="true"/>
       <property name="style" type="uint" value="0"/>
     </property>
-    <property name="plugin-4" type="string" value="genmon">
-      <property name="command" type="string" value="/usr/local/share/siteos/siteos-status.sh"/>
+    <property name="plugin-5" type="string" value="separator">
+      <property name="style" type="uint" value="1"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-6" type="string" value="genmon">
+      <property name="command" type="string" value="/usr/local/share/siteos/siteos-wifi.sh"/>
       <property name="use-label" type="bool" value="false"/>
-      <property name="update-period" type="int" value="1000"/>
+      <property name="update-period" type="int" value="2000"/>
       <property name="enable-single-row" type="bool" value="true"/>
       <property name="font" type="string" value="VT323 15"/>
     </property>
-    <property name="plugin-5" type="string" value="systray">
+    <property name="plugin-7" type="string" value="separator">
+      <property name="style" type="uint" value="1"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-8" type="string" value="systray">
       <property name="square-icons" type="bool" value="true"/>
+    </property>
+    <property name="plugin-9" type="string" value="separator">
+      <property name="style" type="uint" value="1"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-10" type="string" value="clock">
+      <property name="digital-layout" type="uint" value="3"/>
+      <property name="digital-time-format" type="string" value="%H:%M:%S"/>
+      <property name="mode" type="uint" value="2"/>
+      <property name="show-seconds" type="bool" value="true"/>
     </property>
   </property>
 </channel>
 EOF
   sync_channel "xfce4-panel"
+
+  # Site OS dialog & alert tool (mockup .win.err 1:1)
+  install -d -m 0755 /usr/local/bin
+  install -m 0755 "${REPO}/scripts/siteos-dialog.py" /usr/local/bin/siteos-dialog
+  ln -sf /usr/local/bin/siteos-dialog /usr/bin/siteos-dialog
+  ln -sf /usr/local/bin/siteos-dialog /usr/bin/siteos-error
 
   # Site OS custom Start Menu (mockup 1:1 with app column, eject & power buttons)
   install -d -m 0755 /usr/local/bin "${SKEL}/.local/bin"
@@ -382,6 +432,7 @@ EOF
   # Executable wrapper for Start button (runs siteos-menu.py first, fallbacks to jgmenu)
   write_file /usr/bin/siteos-menu <<'EOF'
 #!/bin/sh
+export DISPLAY="${DISPLAY:-:0}"
 if [ -x /usr/local/bin/siteos-menu.py ] && command -v python3 >/dev/null 2>&1; then
   exec python3 /usr/local/bin/siteos-menu.py "$@"
 elif [ -f "${HOME}/.local/bin/siteos-menu.py" ] && command -v python3 >/dev/null 2>&1; then
@@ -414,9 +465,12 @@ StartupNotify=false
 EOF
   chmod 0644 /usr/share/applications/siteos-start.desktop
 
-  mkdir -p "${SKEL}/.local/share/applications" "${SKEL}/.config/xfce4/panel/launcher-1"
+  # Ensure launcher-1 directory has siteos-start.desktop across all configs
+  mkdir -p "${SKEL}/.local/share/applications" "${SKEL}/.config/xfce4/panel/launcher-1" /etc/xdg/xfce4/panel/launcher-1 /etc/xdg/xdg-mint/xfce4/panel/launcher-1
   install -m 0644 /usr/share/applications/siteos-start.desktop "${SKEL}/.local/share/applications/siteos-start.desktop"
   install -m 0644 /usr/share/applications/siteos-start.desktop "${SKEL}/.config/xfce4/panel/launcher-1/siteos-start.desktop"
+  install -m 0644 /usr/share/applications/siteos-start.desktop /etc/xdg/xfce4/panel/launcher-1/siteos-start.desktop
+  install -m 0644 /usr/share/applications/siteos-start.desktop /etc/xdg/xdg-mint/xfce4/panel/launcher-1/siteos-start.desktop 2>/dev/null || true
 
   # jgmenu configuration
   install -d -m 0755 "${SKEL}/.config/jgmenu" /etc/jgmenu
@@ -425,21 +479,24 @@ EOF
   install -m 0644 "${REPO}/configs/jgmenu/jgmenurc" /etc/jgmenu/jgmenurc 2>/dev/null || true
   install -m 0644 "${REPO}/configs/jgmenu/prepend.csv" /etc/jgmenu/prepend.csv 2>/dev/null || true
 
-  # Genmon status line: "LAN: CONNECTED · SITE OS 0.1 · HH:MM:SS"
+  # Genmon network button script: "LAN: CONNECTED"
   install -d -m 0755 /usr/local/share/siteos
+  install -m 0755 "${REPO}/configs/genmon/siteos-wifi.sh" /usr/local/share/siteos/siteos-wifi.sh
   install -m 0755 "${REPO}/configs/genmon/siteos-status.sh" /usr/local/share/siteos/siteos-status.sh
+  ln -sf /usr/local/share/siteos/siteos-wifi.sh /usr/bin/siteos-wifi
   ln -sf /usr/local/share/siteos/siteos-status.sh /usr/bin/siteos-status
 
-  # genmon-4.rc for xfce4-genmon-plugin versions using .rc configuration
+  # genmon-6.rc for WiFi / Network button
   mkdir -p "${SKEL}/.config/xfce4/panel" /etc/xdg/xfce4/panel
-  write_file "${SKEL}/.config/xfce4/panel/genmon-4.rc" <<'EOF'
-Command=/usr/local/share/siteos/siteos-status.sh
+  write_file "${SKEL}/.config/xfce4/panel/genmon-6.rc" <<'EOF'
+Command=/usr/local/share/siteos/siteos-wifi.sh
 UseLabel=0
 Text=(genmon)
-UpdatePeriod=1000
+UpdatePeriod=2000
 Font=VT323 15
 EOF
-  install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-4.rc" /etc/xdg/xfce4/panel/genmon-4.rc
+  install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-6.rc" /etc/xdg/xfce4/panel/genmon-6.rc
+  install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-6.rc" /etc/xdg/xfce4/panel/genmon-4.rc 2>/dev/null || true
 
   # Terminal palette (mockup Terminal window).
   install -d -m 0755 "${SKEL}/.config/xfce4/terminal" /etc/xdg/xfce4/terminal
@@ -458,13 +515,17 @@ EOF
   local h
   for h in /home/*; do
     if [[ -d "$h" && "$h" != "/home/*" ]]; then
-      mkdir -p "${h}/.config/jgmenu" "${h}/.config/xfce4/terminal" "${h}/.config/xfce4/panel/launcher-1" "${h}/.local/share/applications" "${h}/.config/autostart"
+      mkdir -p "${h}/.config/jgmenu" "${h}/.config/xfce4/terminal" "${h}/.config/xfce4/panel/launcher-1" "${h}/.local/share/applications" "${h}/.local/bin" "${h}/.config/autostart" "${h}/.config/picom"
       install -m 0644 "${REPO}/configs/jgmenu/jgmenurc" "${h}/.config/jgmenu/jgmenurc"
       install -m 0644 "${REPO}/configs/jgmenu/prepend.csv" "${h}/.config/jgmenu/prepend.csv"
       install -m 0644 "${REPO}/configs/xfce4-terminal/terminalrc" "${h}/.config/xfce4/terminal/terminalrc"
+      install -m 0644 "${REPO}/configs/picom/picom.conf" "${h}/.config/picom/picom.conf"
+      install -m 0644 /etc/xdg/autostart/picom.desktop "${h}/.config/autostart/picom.desktop"
+      install -m 0755 "${REPO}/scripts/siteos-menu.py" "${h}/.local/bin/siteos-menu.py"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.local/share/applications/siteos-start.desktop"
       install -m 0644 /usr/share/applications/siteos-start.desktop "${h}/.config/xfce4/panel/launcher-1/siteos-start.desktop"
-      install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-4.rc" "${h}/.config/xfce4/panel/genmon-4.rc"
+      install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-6.rc" "${h}/.config/xfce4/panel/genmon-6.rc"
+      install -m 0644 "${SKEL}/.config/xfce4/panel/genmon-6.rc" "${h}/.config/xfce4/panel/genmon-4.rc" 2>/dev/null || true
       install -m 0644 "${SKEL}/.config/autostart/mintwelcome.desktop" "${h}/.config/autostart/mintwelcome.desktop"
       local owner
       owner="$(stat -c '%u:%g' "$h")"
